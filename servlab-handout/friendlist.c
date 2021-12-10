@@ -19,12 +19,18 @@ static void clienterror(int fd, char *cause, char *errnum,
                         char *shortmsg, char *longmsg);
 static void print_stringdictionary(dictionary_t *d);
 static void serve_request(int fd, dictionary_t *query);
+static dictionary_t *list_of_friends;
+static void befriend(int fd, dictionary_t *query, dictionary_t *list_of_friends);
+static void friends(int fd, dictionary_t *query);
+static void unfriend(int fd, dictionary_t *query);
+//static void introduce(int fd, dictionary_t *query);
 
 int main(int argc, char **argv) {
   int listenfd, connfd;
   char hostname[MAXLINE], port[MAXLINE];
   socklen_t clientlen;
   struct sockaddr_storage clientaddr;
+  
 
   /* Check command line args */
   if (argc != 2) {
@@ -41,7 +47,7 @@ int main(int argc, char **argv) {
 
   /* Also, don't stop on broken connections: */
   Signal(SIGPIPE, SIG_IGN);
-
+  list_of_friends = make_dictionary(COMPARE_CASE_SENS, NULL);
   while (1) {
     clientlen = sizeof(clientaddr);
     connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
@@ -96,7 +102,32 @@ void doit(int fd) {
       /* You'll want to handle different queries here,
          but the intial implementation always returns
          nothing: */
-      serve_request(fd, query);
+      if(starts_with("/befriend", uri)){
+
+        befriend(fd, query, list_of_friends);
+      }
+      else if(starts_with("/friends", uri))
+      {
+        friends(fd, query);
+      }
+      else if(starts_with("./unfriend", uri))
+	{
+	  unfriend(fd, query);
+	}
+      else {
+        serve_request(fd, query); 
+      }
+  
+      /* 
+      else if(starts_with("/unfriend", uri))
+      {
+        unfriend(fd, query);
+      }
+      else if(starts_with("/introduce", uri))
+      {
+        introduce(fd, query);
+      }
+      */
 
       /* Clean up */
       free_dictionary(query);
@@ -127,6 +158,7 @@ dictionary_t *read_requesthdrs(rio_t *rp) {
   
   return d;
 }
+
 
 void read_postquery(rio_t *rp, dictionary_t *headers, dictionary_t *dest) {
   char *len_str, *type, *buffer;
@@ -187,6 +219,146 @@ static void serve_request(int fd, dictionary_t *query) {
   free(body);
 }
 
+static void unfriend(int fd, dictionary_t *query)
+{
+  size_t len;
+  char *body, *header;
+  char *user;
+  char *friends; 
+
+  friends = dictionary_get(query, "friends"); 
+  user = dictionary_get(query, "user");
+  char **friends_to_remove = split_string(friends, '\n');
+  
+  dictionary_t *user_friends = dictionary_get(list_of_friends, user);
+  if(user_friends == NULL){
+    printf("Not in the list");
+    }
+  else
+    {
+
+    int i;
+    for(i = 0; friends_to_remove[i] != NULL; i++)
+      {
+	const char* val = friends_to_remove[i];
+	dictionary_remove(user_friends, val);
+      }
+    
+   }
+  print_stringdictionary(user_friends);
+  dictionary_set(list_of_friends, user, user_friends);
+}
+
+static void friends(int fd, dictionary_t *query)
+{
+
+  size_t len;
+  char *body, *header;
+  char *user;
+  user = dictionary_get(query, "user"); 
+  dictionary_t *friends_from_user = dictionary_get(list_of_friends, user); 
+  if(friends_from_user == NULL)
+  {
+    printf("Not in the list \n");
+    dictionary_set(list_of_friends, user, NULL);
+  }
+  else{
+    const char **list = dictionary_keys(friends_from_user);
+    int i;
+    for(i = 0; list[i] !=NULL; i++)
+    {
+      printf("%s\n", list[i]);
+    }
+  }
+
+  print_stringdictionary(list_of_friends);
+
+  
+  body = strdup("alice\nbob");
+
+  len = strlen(body);
+
+  /* Send response headers to client */
+  header = ok_header(len, "text/html; charset=utf-8");
+  Rio_writen(fd, header, strlen(header));
+  printf("Response headers:\n");
+  printf("%s", header);
+
+  free(header);
+
+  /* Send response body to client */
+  Rio_writen(fd, body, len);
+
+  free(body);  
+}
+static void befriend(int fd, dictionary_t *query, dictionary_t* list_of_friends){
+
+  size_t len;
+  char *body, *header;
+  char *user;
+  char *friends; 
+  // values have to be a dictonary 
+  // store a list of friends for each 
+  // make a value a dictionary again 
+  // make the keys in that dictionary 
+  // 
+  
+  friends = dictionary_get(query, "friends"); 
+  user = dictionary_get(query, "user"); 
+
+  char **list;
+  list = split_string(friends, '\n');
+
+  dictionary_t *friends_user = dictionary_get(list_of_friends, user);
+  if(friends_user == NULL)
+  {
+    printf("Got to nulll \n");
+    friends_user = make_dictionary(COMPARE_CASE_INSENS, NULL);
+  }
+  
+
+  // adding friends to user 
+  int index; 
+  for(index = 0; list[index] != NULL; index++)
+  {
+
+    dictionary_set(friends_user, list[index], NULL);
+    print_stringdictionary(friends_user); 
+  }
+
+  dictionary_set(list_of_friends, user, friends_user); 
+  print_stringdictionary(list_of_friends);
+
+  int i; 
+  for(i = 0; list[i] != NULL; i++)
+  {
+    dictionary_t* friend_of_my_friend = dictionary_get(list_of_friends, list[i]);
+    if(friend_of_my_friend == NULL)
+    {
+      friend_of_my_friend = make_dictionary(COMPARE_CASE_INSENS, NULL);
+    }
+    dictionary_set(friend_of_my_friend, user, NULL);
+    dictionary_set(list_of_friends, list[i], friend_of_my_friend);
+  }
+
+  body = strdup("befriend\nmethod");
+
+  len = strlen(body);
+
+  /* Send response headers to client */
+  header = ok_header(len, "text/html; charset=utf-8");
+  Rio_writen(fd, header, strlen(header));
+  printf("Response headers:\n");
+  printf("%s", header);
+
+  free(header);
+
+  /* Send response body to client */
+  Rio_writen(fd, body, len);
+
+  free(body);
+
+}
 /*
  * clienterror - returns an error message to the client
  */

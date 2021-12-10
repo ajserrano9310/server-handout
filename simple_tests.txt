@@ -1,0 +1,96 @@
+
+
+http://lab1-32.eng.utah.edu:2100/friends?user=anna
+
+**Test befriending**
+http://lab1-32.eng.utah.edu:2100/befriend?user=anna&friends=alice
+http://lab1-32.eng.utah.edu:2100/befriend?user=anna&friends=bob
+http://lab1-32.eng.utah.edu:2100/befriend?user=anna&friends=carlos
+http://lab1-32.eng.utah.edu:2100/befriend?user=alice&friends=bob%0Acarol
+
+
+
+**Test friends**
+http://lab1-32.eng.utah.edu:2100/friends?user=anna
+anna: [alice, bob, carlos]
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+alice: [anna, bob, carol]
+http://lab1-32.eng.utah.edu:2100/friends?user=tini
+http://lab1-32.eng.utah.edu:2100/friends?user=carlos
+
+
+**Test unfriend**
+http://lab1-32.eng.utah.edu:2100/unfriend?user=anna&friends=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=anna
+anna: [bob, carlos]
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+alice: [bob, carol]
+
+http://lab1-32.eng.utah.edu:2100/unfriend?user=alice&friends=carol
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+alice:[bob]
+
+
+tests simple: 
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=bob
+http://lab1-32.eng.utah.edu:2100/befriend?user=alice&friends=bob
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=bob
+http://lab1-32.eng.utah.edu:2100/befriend?user=bob&friends=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=bob
+http://lab1-32.eng.utah.edu:2100/befriend?user=carol&friends=dan
+http://lab1-32.eng.utah.edu:2100/friends?user=carol
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+http://lab1-32.eng.utah.edu:2100/friends?user=bob
+http://lab1-32.eng.utah.edu:2100/befriend?user=alice&friends=carol
+http://lab1-32.eng.utah.edu:2100/friends?user=alice
+http://lab1-32.eng.utah.edu:2100/unfriend?user=alice&friends=bob
+
+
+http://lab1-32.eng.utah.edu:2110/befriend?user=alice&friends=bob
+http://lab1-32.eng.utah.edu:2115/introduce?user=alice&friend=bob&host=localhost&port=2110
+
+http://lab1-32.eng.utah.edu:2110/introduce?user=charlie&friend=alice&host=localhost&port=2110
+
+
+http://lab1-32.eng.utah.edu:2120/introduce?user=alice&friend=bob&host=localhost&port=2110
+
+introduce tests
+
+http://lab1-32.eng.utah.edu:2110/befriend?user=bob&friends=jen
+http://lab1-32.eng.utah.edu:2110/befriend?user=bob&friends=charlie
+http://lab1-32.eng.utah.edu:2110/friends?user=bob
+http://lab1-32.eng.utah.edu:2115/introduce?user=alice&friend=bob&host=localhost&port=2110
+http://lab1-32.eng.utah.edu:2115/friends?user=alice
+http://lab1-32.eng.utah.edu:2115/friends?user=charlie
+http://lab1-32.eng.utah.edu:2115/friends?user=bob
+http://lab1-32.eng.utah.edu:2115/friends?user=jen
+
+
+
+http://lab1-32.eng.utah.edu:2115/befriend?user=alice&friends=bob
+http://lab1-32.eng.utah.edu:2115/befriend?user=bob&friends=alice
+http://lab1-32.eng.utah.edu:2115/befriend?user=carol&friends=dan
+http://lab1-32.eng.utah.edu:2115/befriend?user=alice&friends=carol
+http://lab1-32.eng.utah.edu:2115/unfriend?user=alice&friends=bob
+http://lab1-32.eng.utah.edu:2115/befriend?user=eve&friends=frank%0Agrace
+http://lab1-32.eng.utah.edu:2115/unfriend?user=eve&friends=grace%0Afrank
+http://lab1-32.eng.utah.edu:2110/introduce?user=alice&friend=carol&host=localhost&port=2115
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
